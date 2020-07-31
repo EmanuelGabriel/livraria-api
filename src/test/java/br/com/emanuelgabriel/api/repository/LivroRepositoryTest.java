@@ -2,15 +2,21 @@ package br.com.emanuelgabriel.api.repository;
 
 import br.com.emanuelgabriel.model.Livro;
 import br.com.emanuelgabriel.repository.LivroRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -40,7 +46,7 @@ public class LivroRepositoryTest {
         boolean existe = this.livroRepository.existsByIsbn(isbn);
 
         // verificação
-        Assertions.assertThat(existe).isTrue();
+        assertThat(existe).isTrue();
     }
 
 
@@ -55,8 +61,43 @@ public class LivroRepositoryTest {
         boolean existe = this.livroRepository.existsByIsbn(isbn);
 
         // verificação
-        Assertions.assertThat(existe).isFalse();
+        assertThat(existe).isFalse();
     }
 
+
+    @Test
+    @DisplayName("Deve obter um livro por seu código")
+    public void obterLivroPorCodigo() {
+
+        // cenário
+        Livro livro = criarNovoLivro("123");
+        this.entityManager.persist(livro);
+
+        // execução
+        Optional<Livro> buscarPorCodigo = this.livroRepository.findById(livro.getCodigo());
+
+        // verificação ou verificações
+        assertThat(buscarPorCodigo.isPresent()).isTrue();
+
+    }
+
+    @Test
+    @DisplayName("Deve remover um livro")
+    public void removerLivroTest() {
+
+        // cenário
+        Livro livro = Livro.builder().codigo(1L).build();
+
+        // execução
+        this.livroRepository.delete(livro);
+
+        // verificação ou verificações
+        verify(this.livroRepository, times(1)).delete(livro);
+
+    }
+
+    private Livro criarNovoLivro(String isbn) {
+        return Livro.builder().titulo("Aventuras").autor("Fulano").isbn(isbn).build();
+    }
 
 }

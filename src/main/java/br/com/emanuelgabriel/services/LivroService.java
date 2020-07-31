@@ -13,4 +13,10 @@ public interface LivroService {
 
     Optional<Livro> getByCodigo(Long codigo);
 
+    Livro atualizar(Long codigo, Livro livro);
+
+    Livro update(Livro livro);
+
+    void remover(Livro livro);
+
 }

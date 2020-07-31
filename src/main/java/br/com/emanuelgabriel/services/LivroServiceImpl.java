@@ -1,5 +1,6 @@
 package br.com.emanuelgabriel.services;
 
+import br.com.emanuelgabriel.exception.RecursoNaoEncontradoException;
 import br.com.emanuelgabriel.exception.RegraNegocioException;
 import br.com.emanuelgabriel.model.Livro;
 import br.com.emanuelgabriel.repository.LivroRepository;
@@ -33,6 +34,32 @@ public class LivroServiceImpl implements LivroService {
     @Override
     public Optional<Livro> getByCodigo(Long codigo) {
         return this.livroRepository.findById(codigo);
+    }
+
+    @Override
+    public Livro atualizar(Long codigo, Livro livro) {
+        return this.livroRepository.findById(codigo)
+                .map(book -> {
+                    book.setAutor(livro.getAutor());
+                    book.setTitulo(livro.getTitulo());
+                    return this.livroRepository.save(book);
+                }).orElseThrow(() -> new RecursoNaoEncontradoException("Livro não encontrado"));
+    }
+
+    @Override
+    public Livro update(Livro livro) {
+        if (livro == null || livro.getCodigo() == null) {
+            throw new IllegalArgumentException("Este livro não pode ser removido");
+        }
+        return this.livroRepository.save(livro);
+    }
+
+    @Override
+    public void remover(Livro livro) {
+        if (livro == null || livro.getCodigo() == null) {
+            throw new IllegalArgumentException("Este livro não pode ser removido");
+        }
+        this.livroRepository.delete(livro);
     }
 
 

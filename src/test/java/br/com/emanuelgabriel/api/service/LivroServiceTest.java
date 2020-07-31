@@ -15,6 +15,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 public class LivroServiceTest {
@@ -43,10 +47,10 @@ public class LivroServiceTest {
         Livro salvarLivro = this.livroService.salvar(livro);
 
         // verifiação
-        Assertions.assertThat(salvarLivro.getCodigo()).isNotNull(); // não seja nulo
-        Assertions.assertThat(salvarLivro.getTitulo()).isEqualTo("123");
-        Assertions.assertThat(salvarLivro.getAutor()).isEqualTo("Fulano");
-        Assertions.assertThat(salvarLivro.getIsbn()).isEqualTo("27387");
+        assertThat(salvarLivro.getCodigo()).isNotNull(); // não seja nulo
+        assertThat(salvarLivro.getTitulo()).isEqualTo("123");
+        assertThat(salvarLivro.getAutor()).isEqualTo("Fulano");
+        assertThat(salvarLivro.getIsbn()).isEqualTo("27387");
 
     }
 
@@ -62,7 +66,7 @@ public class LivroServiceTest {
         Throwable exception = Assertions.catchThrowable(() -> this.livroService.salvar(livro));
 
         // verificações
-        Assertions.assertThat(exception)
+        assertThat(exception)
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("ISBN já cadastrado");
 
@@ -71,7 +75,49 @@ public class LivroServiceTest {
     }
 
 
+    @Test
+    @DisplayName("Deve obter um livro por código")
+    public void obterLivroPorCodigo() {
+
+        // Cenário
+        Long codigoLivro = 1L;
+
+        Livro livro = criarNovoLivro();
+        livro.setCodigo(codigoLivro);
+        Mockito.when(this.livroRepository.findById(codigoLivro)).thenReturn(Optional.of(livro));
+
+        // execução
+        Optional<Livro> buscarLivroPorCodigo = this.livroService.getByCodigo(codigoLivro);
+
+        // verificações
+        assertThat(buscarLivroPorCodigo.isPresent()).isTrue();
+        assertThat(buscarLivroPorCodigo.get().getCodigo()).isEqualTo(codigoLivro);
+        assertThat(buscarLivroPorCodigo.get().getTitulo()).isEqualTo(livro.getTitulo());
+        assertThat(buscarLivroPorCodigo.get().getAutor()).isEqualTo(livro.getAutor());
+        assertThat(buscarLivroPorCodigo.get().getIsbn()).isEqualTo(livro.getIsbn());
+
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar vazio ao obter um livro por código inexistente")
+    public void livroNaoEncontradoPorCodigo() {
+
+        // Cenário
+        Long codigoLivro = 1L;
+
+        Mockito.when(this.livroRepository.findById(codigoLivro)).thenReturn(Optional.empty());
+
+        // execução
+        Optional<Livro> buscarLivroPorCodigo = this.livroService.getByCodigo(codigoLivro);
+
+        // verificação
+        assertThat(buscarLivroPorCodigo.isPresent()).isFalse();
+
+    }
+
+
     private Livro criarNovoLivro() {
-        return Livro.builder().codigo(1L).titulo("123").autor("Fulano").isbn("27387").build();
+        return Livro.builder().titulo("123").autor("Fulano").isbn("27387").build();
     }
 }

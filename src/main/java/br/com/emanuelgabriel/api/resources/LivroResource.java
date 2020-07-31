@@ -49,6 +49,22 @@ public class LivroResource {
 
     }
 
+    @PutMapping(value = "{codigo}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public LivroDTO atualizar(@PathVariable Long codigo, @Valid @RequestBody Livro livro) {
+        Livro updateLivro = this.livroService.getByCodigo(codigo).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        this.livroService.atualizar(codigo, livro);
+        return this.modelMapper.map(livro, LivroDTO.class);
+    }
+
+    @DeleteMapping(value = "{codigo}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remover(@PathVariable Long codigo) {
+        Livro livro = this.livroService.getByCodigo(codigo).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        this.livroService.remover(livro);
+    }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrors handleValidationExceptions(MethodArgumentNotValidException ex) {
