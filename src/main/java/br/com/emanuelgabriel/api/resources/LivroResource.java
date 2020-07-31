@@ -28,6 +28,7 @@ public class LivroResource {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public LivroDTO criar(@Valid @RequestBody LivroDTO livroDTO) {
+
         Livro livro = this.modelMapper.map(livroDTO, Livro.class);
         livro = this.livroService.salvar(livro);
         return this.modelMapper.map(livro, LivroDTO.class);
