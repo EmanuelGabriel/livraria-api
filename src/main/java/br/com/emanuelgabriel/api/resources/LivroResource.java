@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -34,12 +35,19 @@ public class LivroResource {
         return this.modelMapper.map(livro, LivroDTO.class);
     }
 
-    @GetMapping(MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Livro>> findAll() {
         List<Livro> livros = this.livroService.findAll();
         return livros != null ? ResponseEntity.ok().body(livros) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping(value = "{codigo}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public LivroDTO getByCodigo(@PathVariable Long codigo) {
+        return this.livroService
+                .getByCodigo(codigo).map(livro -> this.modelMapper.map(livro, LivroDTO.class))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

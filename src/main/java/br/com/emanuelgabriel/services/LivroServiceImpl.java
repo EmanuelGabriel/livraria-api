@@ -6,6 +6,7 @@ import br.com.emanuelgabriel.repository.LivroRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LivroServiceImpl implements LivroService {
@@ -27,6 +28,11 @@ public class LivroServiceImpl implements LivroService {
     @Override
     public List<Livro> findAll() {
         return this.livroRepository.findAll();
+    }
+
+    @Override
+    public Optional<Livro> getByCodigo(Long codigo) {
+        return this.livroRepository.findById(codigo);
     }
 
 

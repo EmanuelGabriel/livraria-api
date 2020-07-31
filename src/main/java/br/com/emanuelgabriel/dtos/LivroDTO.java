@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 
 @Data
 @Builder
@@ -15,13 +15,13 @@ public class LivroDTO {
 
     private Long codigo;
 
-    @NotEmpty(message = "O campo TÍTULO não pode ser vazio")
+    @NotBlank(message = "O campo TÍTULO não pode ser vazio")
     private String titulo;
 
-    @NotEmpty(message = "O campo AUTOR não pode ser vazio")
+    @NotBlank(message = "O campo AUTOR não pode ser vazio")
     private String autor;
 
-    @NotEmpty(message = "O campo ISBN não pode ser vazio")
+    @NotBlank(message = "O campo ISBN não pode ser vazio")
     private String isbn;
 
 

@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Optional;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -107,8 +109,53 @@ public class LivroControllerTest {
                 .andExpect(jsonPath("errors[0]").value(mensagemErro));
     }
 
+
+    @Test
+    @DisplayName("Deve obter informação de um livro por seu código")
+    public void getLivroPorCodigo() throws Exception {
+        // cenário (given)
+        Long codigoLivro = 1L;
+
+        Livro livro = Livro.builder().codigo(codigoLivro).titulo("Morro do Gritador").autor("Pedro Alves Cabral").isbn("2384283").build();
+        LivroDTO dto = criarNovoLivro();
+
+        BDDMockito.given(this.livroService.getByCodigo(codigoLivro)).willReturn(Optional.of(livro));
+
+        // execução (when)
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(URL_LIVRO_API.concat("/" + codigoLivro))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc
+                .perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("codigo").value(codigoLivro))
+                .andExpect(jsonPath("titulo").value(dto.getTitulo()))
+                .andExpect(jsonPath("autor").value(dto.getAutor()))
+                .andExpect(jsonPath("isbn").value(dto.getIsbn()));
+
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar um recurso não encontrado quando o livro não existir")
+    public void livroNaoEncontradoTest() throws Exception {
+
+
+        BDDMockito.given(this.livroService.getByCodigo(Mockito.anyLong())).willReturn(Optional.empty());
+
+        // execução (when)
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(URL_LIVRO_API.concat("/" + 1))
+                .accept(MediaType.APPLICATION_JSON);
+
+        this.mvc
+                .perform(request)
+                .andExpect(status().isNotFound());
+
+    }
+
     private LivroDTO criarNovoLivro() {
         return LivroDTO.builder().titulo("Morro do Gritador").autor("Pedro Alves Cabral").isbn("2384283").build();
     }
-
 }
