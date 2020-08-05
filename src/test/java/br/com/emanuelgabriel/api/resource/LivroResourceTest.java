@@ -1,18 +1,23 @@
 package br.com.emanuelgabriel.api.resource;
 
+import br.com.emanuelgabriel.api.resources.LivroResource;
 import br.com.emanuelgabriel.dtos.LivroDTO;
 import br.com.emanuelgabriel.exception.RegraNegocioException;
 import br.com.emanuelgabriel.model.Livro;
-import br.com.emanuelgabriel.services.LivroService;
+import br.com.emanuelgabriel.service.LivroService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -20,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -30,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
-@WebMvcTest
+@WebMvcTest(controllers = {LivroResource.class})
 @AutoConfigureMockMvc
 public class LivroResourceTest {
 
@@ -251,6 +257,41 @@ public class LivroResourceTest {
                 .andExpect(status().isNotFound());
 
     }
+
+    @Test
+    @DisplayName("Deve filtrar livros")
+    public void findLivroTeste() throws Exception {
+
+        Long codLivro = 1L;
+
+        Livro livro = Livro.builder()
+                .codigo(codLivro)
+                .titulo(criarNovoLivro().getTitulo())
+                .autor(criarNovoLivro().getAutor())
+                .isbn(criarNovoLivro().getIsbn())
+                .build();
+
+        BDDMockito.given(this.livroService.findAll(Mockito.any(Livro.class), Mockito.any(Pageable.class)))
+                .willReturn(new PageImpl<Livro>(Arrays.asList(livro), PageRequest.of(0, 100), 1));
+
+        String queryString = String.format("?titulo=%s&autor=%s&page=0&size=100",
+                livro.getTitulo(),
+                livro.getAutor());
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get(URL_LIVRO_API.concat(queryString))
+                .accept(MediaType.APPLICATION_JSON);
+
+        this.mvc
+                .perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("content", hasSize(1)))
+                .andExpect(jsonPath("totalElements").value(1))
+                .andExpect(jsonPath("pageable.pageSize").value(100))
+                .andExpect(jsonPath("pageable.pageNumber").value(0));
+
+    }
+
 
     private LivroDTO criarNovoLivro() {
         return LivroDTO.builder().codigo(1L).titulo("Morro do Gritador").autor("Pedro Alves Cabral").isbn("2384283").build();

@@ -86,15 +86,30 @@ public class LivroRepositoryTest {
     public void removerLivroTest() {
 
         // cenário
-        Livro livro = Livro.builder().codigo(1L).build();
+        Livro livro = criarNovoLivro("123");
+        this.entityManager.persist(livro);
 
-        // execução
-        this.livroRepository.delete(livro);
+        Livro buscarLivro = this.entityManager.find(Livro.class, livro.getCodigo());
+        this.livroRepository.delete(buscarLivro);
 
-        // verificação ou verificações
-        verify(this.livroRepository, times(1)).delete(livro);
+        // verificação ou verificações=
+        Livro removerLivro = this.entityManager.find(Livro.class, livro.getCodigo());
+        assertThat(removerLivro).isNull();
 
     }
+
+    @Test
+    @DisplayName("Deve salvar um livro")
+    public void salvarLivroTest() {
+
+        Livro livro = criarNovoLivro("123");
+
+        Livro criarLivro = this.livroRepository.save(livro);
+
+        assertThat(criarLivro.getCodigo()).isNotNull();
+
+    }
+
 
     private Livro criarNovoLivro(String isbn) {
         return Livro.builder().titulo("Aventuras").autor("Fulano").isbn(isbn).build();

@@ -1,18 +1,23 @@
-package br.com.emanuelgabriel.services;
+package br.com.emanuelgabriel.service;
 
 import br.com.emanuelgabriel.exception.RecursoNaoEncontradoException;
 import br.com.emanuelgabriel.exception.RegraNegocioException;
 import br.com.emanuelgabriel.model.Livro;
 import br.com.emanuelgabriel.repository.LivroRepository;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import static org.springframework.data.domain.ExampleMatcher.matching;
 
 @Service
 public class LivroServiceImpl implements LivroService {
 
-    private LivroRepository livroRepository;
+    private final LivroRepository livroRepository;
 
     public LivroServiceImpl(LivroRepository livroRepository) {
         this.livroRepository = livroRepository;
@@ -27,13 +32,25 @@ public class LivroServiceImpl implements LivroService {
     }
 
     @Override
-    public List<Livro> findAll() {
-        return this.livroRepository.findAll();
+    public Page<Livro> findAll(Livro livroFilter, Pageable pageable) {
+        Example<Livro> example = Example
+                .of(livroFilter, matching()
+                        .withIgnoreCase()
+                        .withIgnoreNullValues()
+                        .withStringMatcher(StringMatcher.CONTAINING)
+                );
+
+        return this.livroRepository.findAll(example, pageable);
     }
 
     @Override
     public Optional<Livro> getByCodigo(Long codigo) {
         return this.livroRepository.findById(codigo);
+    }
+
+    @Override
+    public Optional<Livro> findByIsbn(String isbn) {
+        return Optional.empty();
     }
 
     @Override
