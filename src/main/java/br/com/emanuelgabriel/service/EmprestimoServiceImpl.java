@@ -16,6 +16,6 @@ public class EmprestimoServiceImpl implements EmprestimoService {
 
     @Override
     public Emprestimo salvar(Emprestimo emprestimo) {
-        return null;
+        return this.emprestimoRepository.save(emprestimo);
     }
 }

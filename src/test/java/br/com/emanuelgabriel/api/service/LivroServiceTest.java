@@ -26,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -48,7 +49,7 @@ public class LivroServiceTest {
         // cenário
         Livro livro = criarNovoLivro();
 
-        Mockito.when(this.livroRepository.save(livro))
+        when(this.livroRepository.save(livro))
                 .thenReturn(Livro.builder().codigo(1L).titulo("123").autor("Fulano").isbn("27387").build());
 
         // execução
@@ -68,7 +69,7 @@ public class LivroServiceTest {
 
         // cenário
         Livro livro = criarNovoLivro();
-        Mockito.when(this.livroRepository.existsByIsbn(Mockito.anyString())).thenReturn(true);
+        when(this.livroRepository.existsByIsbn(Mockito.anyString())).thenReturn(true);
 
         // execução
         Throwable exception = Assertions.catchThrowable(() -> this.livroService.salvar(livro));
@@ -92,7 +93,7 @@ public class LivroServiceTest {
 
         Livro livro = criarNovoLivro();
         livro.setCodigo(codigoLivro);
-        Mockito.when(this.livroRepository.findById(codigoLivro)).thenReturn(Optional.of(livro));
+        when(this.livroRepository.findById(codigoLivro)).thenReturn(Optional.of(livro));
 
         // execução
         Optional<Livro> buscarLivroPorCodigo = this.livroService.getByCodigo(codigoLivro);
@@ -114,7 +115,7 @@ public class LivroServiceTest {
         // Cenário
         Long codigoLivro = 1L;
 
-        Mockito.when(this.livroRepository.findById(codigoLivro)).thenReturn(Optional.empty());
+        when(this.livroRepository.findById(codigoLivro)).thenReturn(Optional.empty());
 
         // execução
         Optional<Livro> buscarLivroPorCodigo = this.livroService.getByCodigo(codigoLivro);
@@ -183,7 +184,7 @@ public class LivroServiceTest {
         livroAtualizado.setCodigo(codigoLivro);
 
         // verificações
-        Mockito.when(this.livroRepository.save(livroAtualizando)).thenReturn(livroAtualizado);
+        when(this.livroRepository.save(livroAtualizando)).thenReturn(livroAtualizado);
 
         // execução
         Livro livro = this.livroService.update(livroAtualizando);
@@ -210,7 +211,7 @@ public class LivroServiceTest {
 
         Page<Livro> page = new PageImpl<>(lista, pageRequest, 1);
 
-        Mockito.when(this.livroRepository.findAll(Mockito.any(Example.class), Mockito.any(PageRequest.class))).thenReturn(page);
+        when(this.livroRepository.findAll(Mockito.any(Example.class), Mockito.any(PageRequest.class))).thenReturn(page);
 
         // execução
         Page<Livro> resultado = this.livroService.findAll(livro, pageRequest);
@@ -223,6 +224,23 @@ public class LivroServiceTest {
 
     }
 
+    @Test
+    @DisplayName("Deve obter um livro pelo ISBN")
+    public void getLivroByIsbnTest() {
+
+        String isbn = "123";
+
+        when(this.livroRepository.findByIsbn(isbn)).thenReturn(Optional.of(Livro.builder().codigo(1L).isbn(isbn).build()));
+
+        Optional<Livro> livro = this.livroService.findByIsbn(isbn);
+
+        assertThat(livro.isPresent()).isTrue();
+        assertThat(livro.get().getCodigo()).isEqualTo(1L);
+        assertThat(livro.get().getIsbn()).isEqualTo(isbn);
+
+        verify(this.livroRepository, times(1)).findByIsbn(isbn);
+
+    }
 
     private Livro criarNovoLivro() {
         return Livro.builder().titulo("123").autor("Fulano").isbn("27387").build();
